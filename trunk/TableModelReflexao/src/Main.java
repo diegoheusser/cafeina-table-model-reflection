@@ -1,7 +1,6 @@
-
+//Main.java
 import control.Control;
 
-//Main.java
 /**
  * @author Diego Heusser
  */

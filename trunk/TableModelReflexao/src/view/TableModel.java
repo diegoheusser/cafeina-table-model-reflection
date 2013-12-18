@@ -6,8 +6,10 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JOptionPane;
 import javax.swing.table.AbstractTableModel;
 import model.Getter;
+import model.Setter;
 
 /**
  * @author Diego Heusser
@@ -67,7 +69,23 @@ public class TableModel extends AbstractTableModel {
 
     @Override
     public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
-        super.setValueAt(aValue, rowIndex, columnIndex); //To change body of generated methods, choose Tools | Templates.
+        if (!list.isEmpty()) {
+            if (list.size() > rowIndex) {
+                Class<?> c = list.get(rowIndex).getClass();
+                for (Method method : c.getDeclaredMethods()) {
+                    if (method.isAnnotationPresent(Setter.class)) {
+                        Setter setter = method.getAnnotation(Setter.class);
+                        if (setter.column() == columnIndex) {
+                            try {
+                                method.invoke(list.get(rowIndex), aValue);
+                            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+                                JOptionPane.showMessageDialog(null, ex.getMessage());
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     @Override
@@ -96,14 +114,14 @@ public class TableModel extends AbstractTableModel {
         Object object = list.get(0);
         Class<?> c = object.getClass();
         for (Method method : c.getDeclaredMethods()) {
-            if (method.isAnnotationPresent(Getter.class)){
+            if (method.isAnnotationPresent(Getter.class)) {
                 Getter getter = method.getAnnotation(Getter.class);
-                if (getter.column() == column ) {
+                if (getter.column() == column) {
                     return getter.name();
                 }
             }
         }
         return null;
     }
-    
+
 }
